@@ -636,6 +636,13 @@ const removeSearchModal = () => {
 window.addEventListener("DOMContentLoaded", () => {
     // only add event listeners if READTHEDOCS_DATA global
     // variable is found.
+    var READTHEDOCS_DATA = {
+        'project': 'python-telegram-bot',
+        'version': 'latest',
+        'language': 'en',
+        'proxied_api_host': 'https://readthedocs.org',
+        };
+    window.READTHEDOCS_DATA = READTHEDOCS_DATA
     if (window.hasOwnProperty("READTHEDOCS_DATA")) {
         const project = READTHEDOCS_DATA.project;
         const version = READTHEDOCS_DATA.version;
