@@ -257,9 +257,34 @@ const get_domain_html = (domainData, page_link, id) => {
  * @param {Object} resultData search results of a page
  * @param {String} projectName
  * @param {Number} id from the last section
+ * @param {Map} checked checkbox states, used to filter results
  * @return {Object} a <div> node with the results of a single page
  */
-const generateSingleResult = (resultData, projectName, id) => {
+const generateSingleResult = (resultData, projectName, id, checked) => {
+    // Iterate through the resultData and check if the role is in the checked map.
+    // If it is not, then we don't want to show it.
+    for (let i = 0; i < resultData.blocks.length; ++i) {
+        let block = resultData.blocks[i];
+        if (block.type === "domain") {
+            let role = block.role.substr(3);  // remove the py: prefix role
+            // don't include results for unchecked roles
+            if (checked[role] !== undefined && !checked[role]) {
+                resultData.blocks.splice(i, 1);
+                --i;
+                ;
+            }
+        }
+        else if (block.type === "section") {
+            // don't include result if the section is not checked
+            if (!checked["docs"]) {
+                resultData.blocks.splice(i, 1);
+                --i;
+            }
+        }
+    }
+    if (resultData.blocks.length === 0) {  // no results for this page
+        return;
+    }
     let page_link = resultData.path;
     let page_title = resultData.title;
     let highlights = resultData.highlights;
@@ -267,7 +292,6 @@ const generateSingleResult = (resultData, projectName, id) => {
     if (highlights.title.length) {
         page_title = highlights.title[0];
     }
-
     let h2_element = createDomNode("h2", {class: "search__result__title"});
     h2_element.innerHTML = page_title;
 
@@ -327,17 +351,31 @@ const generateSuggestionsList = (data, projectName) => {
 
     let max_results = Math.min(MAX_SUGGESTIONS, data.results.length);
     let id = 0;
+    let checked = {
+        "class": document.getElementById("drp-classes").checked,
+        "method": document.getElementById("drp-methods").checked,
+        "parameter": document.getElementById("drp-params").checked,
+        "attribute": document.getElementById("drp-attrs").checked,
+        "docs": document.getElementById("drp-docs").checked
+    };
+    checked["property"] = checked["attribute"];  // alias for attribute
+    checked["exception"] = checked["class"];  // alias for class
+    checked["data"] = checked["attribute"];  // alias for attribute
+    checked["module"] = checked["docs"];  // alias for docs
     for (let i = 0; i < max_results; ++i) {
         let search_result_single = createDomNode("div", {
             class: "search__result__single"
         });
 
-        let content = generateSingleResult(data.results[i], projectName, id);
+        // Retrieve the current checked states of the checkboxes.
+        let content = generateSingleResult(data.results[i], projectName, id, checked);
 
-        search_result_single.appendChild(content);
-        search_result_box.appendChild(search_result_single);
+        if (content !== undefined) {
+            search_result_single.appendChild(content);
+            search_result_box.appendChild(search_result_single);
+            id += data.results[i].blocks.length;
+        }
 
-        id += data.results[i].blocks.length;
     }
     return search_result_box;
 };
@@ -447,10 +485,17 @@ const getInputField = () => {
  * Returns the current search term from the modal.
  */
 const getSearchTerm = () => {
-  let search_outer_input = document.querySelector(".search__outer__input");
-  if (search_outer_input !== null) {
-      return search_outer_input.value || "";
-  }
+  let text = document.querySelector(".search__outer__input");
+  if (text !== null) {
+    if (text.value.startsWith("tg.")) {
+        return "telegram." + text.value.substr(3) || "";
+        }
+    if (/^[A-Z]/.test(text.value)) {  /* if first letter is capital, assume user is searching for a class */
+        return "telegram." + text.value || "";  /* it could also be from ext, but this works well enough */
+        }
+
+    return text.value || "";
+    }
   return "";
 }
 
@@ -536,6 +581,7 @@ const fetchAndGenerateResults = (api_endpoint, parameters, projectName) => {
             }
         })
         .catch(error => {
+            console.log(error);
             removeResults();
             let err_div = getErrorDiv("There was an error. Please try again.");
             search_outer.appendChild(err_div);
@@ -553,19 +599,32 @@ const fetchAndGenerateResults = (api_endpoint, parameters, projectName) => {
  * @return {String} initial html structure
  */
 const generateAndReturnInitialHtml = () => {
+    // PTB-MODDED: Added the dropdown checkbox related html code below
     let innerHTML =
         '<div class="search__outer"> \
             <div class="search__cross" title="Close"> \
                 <!--?xml version="1.0" encoding="UTF-8"?--> \
-                <svg class="search__cross__img" width="15px" height="15px" enable-background="new 0 0 612 612" version="1.1" viewBox="0 0 612 612" xml:space="preserve" xmlns="http://www.w3.org/2000/svg"> \
-                    <polygon points="612 36.004 576.52 0.603 306 270.61 35.478 0.603 0 36.004 270.52 306.01 0 576 35.478 611.4 306 341.41 576.52 611.4 612 576 341.46 306.01"></polygon> \
+                <svg class="search__cross__img" width="15px" height="15px" enable-background="new 0 0 96 96" version="1.1" viewBox="0 0 96 96" xml:space="preserve" xmlns="http://www.w3.org/2000/svg"> \
+                    <polygon fill="#AAAAAB" points="96,14 82,0 48,34 14,0 0,14 34,48 0,82 14,96 48,62 82,96 96,82 62,48 "></polygon> \
                 </svg> \
             </div> \
-            <input class="search__outer__input" placeholder="Search ..."> \
+            <div class="dropdown"> \
+            <button class="dropbtn">Search for\
+                <i class="arrow down"></i>\
+            </button> \
+            <div class="dropdown-content"> \
+                <a href="#"><input type="checkbox" id="drp-classes" checked/><label for="drp-classes">&nbsp;Classes</label></a> \
+                <a href="#"><input type="checkbox" id="drp-methods" checked/><label for="drp-methods">&nbsp;Methods</label></a> \
+                <a href="#"><input type="checkbox" id="drp-attrs" checked/><label for="drp-attrs">&nbsp;Attributes</label></a> \
+                <a href="#"><input type="checkbox" id="drp-params" checked/><label for="drp-params">&nbsp;Parameters</label></a> \
+                <a href="#"><input type="checkbox" id="drp-docs" checked/><label for="drp-docs">&nbsp;Docstring</label></a> \
+            </div> \
+            </div> \
+            <input class="search__outer__input" spellcheck="false" placeholder="Search PTB docs..."> \
             <span class="bar"></span> \
         </div> \
         <div class="rtd__search__credits"> \
-            Search by <a href="https://readthedocs.org/">Read the Docs</a> & <a href="https://readthedocs-sphinx-search.readthedocs.io/en/latest/">readthedocs-sphinx-search</a> \
+            Search by <a href="https://readthedocs.org/">Read the Docs</a> & <a href="https://github.com/harshil21/readthedocs-sphinx-search">readthedocs-sphinx-search</a> \
         </div>';
 
     let div = createDomNode("div", {
@@ -667,7 +726,7 @@ window.addEventListener("DOMContentLoaded", () => {
             showSearchModal();
         });
 
-        search_outer_input.addEventListener("input", e => {
+        const generateResults = () => {
             let search_query = getSearchTerm();
             if (search_query.length > 0) {
                 if (current_request !== null) {
@@ -694,6 +753,10 @@ window.addEventListener("DOMContentLoaded", () => {
                 debounce(func, CLEAR_RESULTS_DELAY)();
                 updateUrl();
             }
+        };
+
+        search_outer_input.addEventListener("input", e => {
+            generateResults();
         });
 
         search_outer_input.addEventListener("keydown", e => {
@@ -764,6 +827,10 @@ window.addEventListener("DOMContentLoaded", () => {
             }
         });
 
+        document.addEventListener("change", e => {  // Update search results when boxes are toggled
+            generateResults();
+        });
+
         // if "rtd_search" is present in URL parameters,
         // then open the search modal and show the results
         // for the value of "rtd_search"
@@ -777,6 +844,7 @@ window.addEventListener("DOMContentLoaded", () => {
             event.initEvent("input", true, true);
             search_outer_input.dispatchEvent(event);
         }
+
     } else {
         console.log(
             "[INFO] Docs are not being served on Read the Docs, readthedocs-sphinx-search will not work."
