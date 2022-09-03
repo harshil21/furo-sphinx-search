@@ -542,7 +542,7 @@ const fetchAndGenerateResults = (api_endpoint, parameters, projectName) => {
     // the user.
     removeResults();
     let search_loding = createDomNode("div", { class: "search__result__box" });
-    search_loding.innerHTML = "<strong>Searching ....</strong>";
+    search_loding.innerHTML = "<strong>Searching...</strong>";
     search_outer.appendChild(search_loding);
 
     let fetchFunc = () => {
@@ -602,26 +602,28 @@ const generateAndReturnInitialHtml = () => {
     // PTB-MODDED: Added the dropdown checkbox related html code below
     let innerHTML =
         '<div class="search__outer"> \
-            <div class="search__cross" title="Close"> \
-                <!--?xml version="1.0" encoding="UTF-8"?--> \
-                <svg class="search__cross__img" width="15px" height="15px" enable-background="new 0 0 96 96" version="1.1" viewBox="0 0 96 96" xml:space="preserve" xmlns="http://www.w3.org/2000/svg"> \
-                    <polygon fill="#AAAAAB" points="96,14 82,0 48,34 14,0 0,14 34,48 0,82 14,96 48,62 82,96 96,82 62,48 "></polygon> \
-                </svg> \
+            <div class="search__outer__input__wrapper"> \
+                <input class="search__outer__input" spellcheck="false" placeholder="Search"> \
+                <span class="bar"></span> \
+                <div class="dropdown"> \
+                    <button class="dropbtn">Type\
+                        <i class="arrow down"></i>\
+                    </button> \
+                    <div class="dropdown-content"> \
+                        <a href="#"><input type="checkbox" id="drp-classes" checked/><label for="drp-classes">&nbsp;&nbsp;Classes</label></a> \
+                        <a href="#"><input type="checkbox" id="drp-methods" checked/><label for="drp-methods">&nbsp;&nbsp;Methods</label></a> \
+                        <a href="#"><input type="checkbox" id="drp-attrs" checked/><label for="drp-attrs">&nbsp;&nbsp;Attributes</label></a> \
+                        <a href="#"><input type="checkbox" id="drp-params" checked/><label for="drp-params">&nbsp;&nbsp;Parameters</label></a> \
+                        <a href="#"><input type="checkbox" id="drp-docs" checked/><label for="drp-docs">&nbsp;&nbsp;Docstring</label></a> \
+                    </div> \
+                </div> \
+                <div class="search__cross" title="Close"> \
+                    <!--?xml version="1.0" encoding="UTF-8"?--> \
+                    <svg class="search__cross__img" width="15px" height="15px" enable-background="new 0 0 96 96" version="1.1" viewBox="0 0 96 96" xml:space="preserve" xmlns="http://www.w3.org/2000/svg"> \
+                        <polygon fill="#AAAAAB" points="96,14 82,0 48,34 14,0 0,14 34,48 0,82 14,96 48,62 82,96 96,82 62,48 "></polygon> \
+                    </svg> \
             </div> \
-            <div class="dropdown"> \
-            <button class="dropbtn">Search for\
-                <i class="arrow down"></i>\
-            </button> \
-            <div class="dropdown-content"> \
-                <a href="#"><input type="checkbox" id="drp-classes" checked/><label for="drp-classes">&nbsp;Classes</label></a> \
-                <a href="#"><input type="checkbox" id="drp-methods" checked/><label for="drp-methods">&nbsp;Methods</label></a> \
-                <a href="#"><input type="checkbox" id="drp-attrs" checked/><label for="drp-attrs">&nbsp;Attributes</label></a> \
-                <a href="#"><input type="checkbox" id="drp-params" checked/><label for="drp-params">&nbsp;Parameters</label></a> \
-                <a href="#"><input type="checkbox" id="drp-docs" checked/><label for="drp-docs">&nbsp;Docstring</label></a> \
             </div> \
-            </div> \
-            <input class="search__outer__input" spellcheck="false" placeholder="Search PTB docs..."> \
-            <span class="bar"></span> \
         </div> \
         <div class="rtd__search__credits"> \
             Search by <a href="https://readthedocs.org/">Read the Docs</a> & <a href="https://github.com/harshil21/readthedocs-sphinx-search">readthedocs-sphinx-search</a> \
@@ -827,7 +829,7 @@ window.addEventListener("DOMContentLoaded", () => {
             }
         });
 
-        document.addEventListener("change", e => {  // Update search results when boxes are toggled
+        document.addEventListener("change", e => {
             generateResults();
         });
 
