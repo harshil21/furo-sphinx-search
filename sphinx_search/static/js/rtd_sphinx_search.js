@@ -362,20 +362,24 @@ const generateSuggestionsList = (data, projectName) => {
     checked["exception"] = checked["class"];  // alias for class
     checked["data"] = checked["attribute"];  // alias for attribute
     checked["module"] = checked["docs"];  // alias for docs
+    checked["function"] = checked["method"];  // alias for method
     for (let i = 0; i < max_results; ++i) {
-        let search_result_single = createDomNode("div", {
-            class: "search__result__single"
-        });
-
         // Retrieve the current checked states of the checkboxes.
         let content = generateSingleResult(data.results[i], projectName, id, checked);
 
         if (content !== undefined) {
+            let search_result_single = createDomNode("div", {
+                class: "search__result__single"
+            });
+
             search_result_single.appendChild(content);
             search_result_box.appendChild(search_result_single);
             id += data.results[i].blocks.length;
         }
 
+    }
+    if (id === 0) {  // no results when filtering from checkboxes
+        return null;
     }
     return search_result_box;
 };
@@ -566,14 +570,19 @@ const fetchAndGenerateResults = (api_endpoint, parameters, projectName) => {
                     projectName
                 );
                 removeResults();
-                search_outer.appendChild(search_result_box);
+                if (!search_result_box) {  // if no results are found after filtering
+                    let err_div = getErrorDiv("No results found");
+                    search_outer.appendChild(err_div);
+                } else {
+                    search_outer.appendChild(search_result_box);
 
-                // remove active classes from all suggestions
-                // if the mouse hovers, otherwise styles from
-                // :hover and .active will clash.
-                search_outer.addEventListener("mouseenter", e => {
-                    removeAllActive();
-                });
+                    // remove active classes from all suggestions
+                    // if the mouse hovers, otherwise styles from
+                    // :hover and .active will clash.
+                    search_outer.addEventListener("mouseenter", e => {
+                        removeAllActive();
+                    });
+                };
             } else {
                 removeResults();
                 let err_div = getErrorDiv("No results found");
@@ -605,17 +614,17 @@ const generateAndReturnInitialHtml = () => {
             <div class="search__outer__input__wrapper"> \
                 <input class="search__outer__input" spellcheck="false" placeholder="Search"> \
                 <span class="bar"></span> \
-                <div class="dropdown"> \
+                <div class="dropdown" tabindex="0"> \
                     <button class="dropbtn">Type\
                         <i class="arrow down"></i>\
                     </button> \
-                    <div class="dropdown-content"> \
-                        <a href="#"><input type="checkbox" id="drp-classes" checked/><label for="drp-classes">&nbsp;&nbsp;Classes</label></a> \
-                        <a href="#"><input type="checkbox" id="drp-methods" checked/><label for="drp-methods">&nbsp;&nbsp;Methods</label></a> \
-                        <a href="#"><input type="checkbox" id="drp-attrs" checked/><label for="drp-attrs">&nbsp;&nbsp;Attributes</label></a> \
-                        <a href="#"><input type="checkbox" id="drp-params" checked/><label for="drp-params">&nbsp;&nbsp;Parameters</label></a> \
-                        <a href="#"><input type="checkbox" id="drp-docs" checked/><label for="drp-docs">&nbsp;&nbsp;Docstring</label></a> \
-                    </div> \
+                    <ul class="dropdown-content"> \
+                        <li><a href="#"><input type="checkbox" id="drp-classes" checked/><label for="drp-classes">&nbsp;&nbsp;Classes</label></a></li> \
+                        <li><a href="#"><input type="checkbox" id="drp-methods" checked/><label for="drp-methods">&nbsp;&nbsp;Methods</label></a></li> \
+                        <li><a href="#"><input type="checkbox" id="drp-attrs" checked/><label for="drp-attrs">&nbsp;&nbsp;Attributes</label></a></li> \
+                        <li><a href="#"><input type="checkbox" id="drp-params" checked/><label for="drp-params">&nbsp;&nbsp;Parameters</label></a></li> \
+                        <li><a href="#"><input type="checkbox" id="drp-docs" checked/><label for="drp-docs">&nbsp;&nbsp;Docstring</label></a></li> \
+                    </ul> \
                 </div> \
                 <div class="search__cross" title="Close"> \
                     <!--?xml version="1.0" encoding="UTF-8"?--> \
@@ -626,7 +635,7 @@ const generateAndReturnInitialHtml = () => {
             </div> \
         </div> \
         <div class="rtd__search__credits"> \
-            Search by <a href="https://readthedocs.org/">Read the Docs</a> & <a href="https://github.com/harshil21/readthedocs-sphinx-search">readthedocs-sphinx-search</a> \
+            Search by <a href="https://readthedocs.org/">Read the Docs</a> & <a href="https://github.com/harshil21/furo-sphinx-search">furo-sphinx-search</a> \
         </div>';
 
     let div = createDomNode("div", {
@@ -718,7 +727,6 @@ window.addEventListener("DOMContentLoaded", () => {
         let search_outer_input = document.querySelector(
             ".search__outer__input"
         );
-        let dropdown_button = document.querySelector(".dropdown");
         let cross_icon = document.querySelector(".search__cross");
 
         // this stores the current request.
@@ -808,31 +816,6 @@ window.addEventListener("DOMContentLoaded", () => {
             }
         });
 
-        // Close/open dropdown menu if clicked. Important if user is on mobile
-        dropdown_button.addEventListener("click", e => {
-            let dropdown_content = dropdown_button.querySelector(".dropdown-content");
-            if (dropdown_button.matches(":hover") && dropdown_content.style.display === "block") {
-                dropdown_content.style.display = "none";
-                dropdown_content.style.max_height = "0px";
-            } else {
-                dropdown_content.style.display = "block";
-                dropdown_content.style.max_height = "300px";
-            }
-        });
-
-        // Same logic is applied for mouseenter and leave events
-        dropdown_button.addEventListener("mouseenter", e => {
-            let dropdown_content = dropdown_button.querySelector(".dropdown-content");
-            dropdown_content.style.display = "block";
-            dropdown_content.style.max_height = "300px";
-        });
-
-        dropdown_button.addEventListener("mouseleave", e => {
-            let dropdown_content = dropdown_button.querySelector(".dropdown-content");
-            dropdown_content.style.display = "none";
-            dropdown_content.style.max_height = "0px";
-        });
-
         // close the search modal if clicked on cross icon.
         cross_icon.addEventListener("click", e => {
             removeSearchModal();
@@ -855,7 +838,7 @@ window.addEventListener("DOMContentLoaded", () => {
             }
         });
 
-        document.addEventListener("change", e => {
+        document.addEventListener("change", e => {  // Update search results when boxes are toggled
             generateResults();
         });
 
