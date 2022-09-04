@@ -599,7 +599,7 @@ const fetchAndGenerateResults = (api_endpoint, parameters, projectName) => {
  * @return {String} initial html structure
  */
 const generateAndReturnInitialHtml = () => {
-    // PTB-MODDED: Added the dropdown checkbox related html code below
+    // MODDED: Added the dropdown checkbox related html code below
     let innerHTML =
         '<div class="search__outer"> \
             <div class="search__outer__input__wrapper"> \
@@ -718,6 +718,7 @@ window.addEventListener("DOMContentLoaded", () => {
         let search_outer_input = document.querySelector(
             ".search__outer__input"
         );
+        let dropdown_button = document.querySelector(".dropdown");
         let cross_icon = document.querySelector(".search__cross");
 
         // this stores the current request.
@@ -805,6 +806,31 @@ window.addEventListener("DOMContentLoaded", () => {
             if (e.target.parentNode === document.body) {
                 removeSearchModal();
             }
+        });
+
+        // Close/open dropdown menu if clicked. Important if user is on mobile
+        dropdown_button.addEventListener("click", e => {
+            let dropdown_content = dropdown_button.querySelector(".dropdown-content");
+            if (dropdown_button.matches(":hover") && dropdown_content.style.display === "block") {
+                dropdown_content.style.display = "none";
+                dropdown_content.style.max_height = "0px";
+            } else {
+                dropdown_content.style.display = "block";
+                dropdown_content.style.max_height = "300px";
+            }
+        });
+
+        // Same logic is applied for mouseenter and leave events
+        dropdown_button.addEventListener("mouseenter", e => {
+            let dropdown_content = dropdown_button.querySelector(".dropdown-content");
+            dropdown_content.style.display = "block";
+            dropdown_content.style.max_height = "300px";
+        });
+
+        dropdown_button.addEventListener("mouseleave", e => {
+            let dropdown_content = dropdown_button.querySelector(".dropdown-content");
+            dropdown_content.style.display = "none";
+            dropdown_content.style.max_height = "0px";
         });
 
         // close the search modal if clicked on cross icon.
