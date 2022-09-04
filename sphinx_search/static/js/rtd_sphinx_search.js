@@ -838,6 +838,17 @@ window.addEventListener("DOMContentLoaded", () => {
             }
         });
 
+        // Allow closing dropdown menu on click:
+        let dropdown_button = document.querySelector(".dropbtn");
+        dropdown_button.addEventListener("click", e => {
+            let content = window.getComputedStyle(document.querySelector(".dropdown-content", ":focus-within"));
+            // check if max height is 300px, if it is, the menu is open and we should close it
+            let maxHeight = parseFloat(content.maxHeight.substring(0, content.maxHeight.length - 2));
+            if (document.activeElement === dropdown_button && maxHeight === 300) {
+                dropdown_button.blur();  // unfocus the button so menu closes
+            }
+        });
+
         document.addEventListener("change", e => {  // Update search results when boxes are toggled
             generateResults();
         });
