@@ -23,7 +23,7 @@
     display: none;
 
     /* Other */
-    background-color: rgba(0, 0, 0, 69%);
+    background-color: rgba(0 0 0 69%);
 }
 
 .search__outer {
@@ -190,7 +190,7 @@
 }
 
 .search__result__box .active {
-    background-color: rgb(37, 37, 37);
+    background-color: rgb(37 37 37);
     border-radius: 5px;
 }
 
@@ -202,7 +202,7 @@
 .search__error__box {
     min-width: 300px;
     font-weight: 700;
-    color: rgb(232, 230, 227);
+    color: rgb(232 230 227);
     padding-left: 8px;
     padding-top: 8px;
 }
@@ -216,7 +216,7 @@
 }
 
 .outer_div_page_results:hover {
-    background-color: rgb(30, 32, 33);
+    background-color: rgb(30 32 33);
 }
 
 .search__result__single a {
@@ -300,7 +300,7 @@
 
 .rtd__search__credits {
     background-image: initial;
-    background-color: rgb(30, 30, 30);
+    background-color: rgb(30 30 30);
     border-bottom-left-radius: 10px;
     border-bottom-right-radius: 10px;
     margin: auto;
@@ -320,14 +320,14 @@
 }
 
 .rtd__search__credits a {
-    color: rgb(232, 230, 227);
+    color: rgb(232 230 227);
     text-decoration: underline;
 }
 
 .search__domain_role_name {
     font-size: 80%;
     letter-spacing: 1px;
-    color: rgb(232, 230, 227 / 72%);
+    color: rgb(232 230 227 / 72%);
 }
 
 @media (max-width: 670px) {
@@ -426,7 +426,7 @@
 }
 
 .dropdown-content a {
-    color: rgb(184, 179, 179);
+    color: rgb(184 179 179);
     padding: 12px 16px;
     text-decoration: none;
     display: flex;
@@ -436,7 +436,7 @@
 }
 
 .arrow {
-  border: solid rgb(178, 175, 175);
+  border: solid rgb(178 175 175);
   border-width: 0 2px 2px 0;
   display: inline-block;
   transform: rotate(45deg);
@@ -454,7 +454,7 @@
 }
 
 .dropdown-content a:hover {
-    background-color: rgb(39, 38, 38);
+    background-color: rgb(39 38 38);
     z-index: 300000;
 }
 
