@@ -1,10 +1,70 @@
 const MAX_SUGGESTIONS = 50;
 const MAX_SECTION_RESULTS = 3;
-const MAX_SUBSTRING_LIMIT = 100;
+const MAX_SUBSTRING_LIMIT = 200;
 const ANIMATION_TIME = 200;
-const FETCH_RESULTS_DELAY = 250;
-const CLEAR_RESULTS_DELAY = 300;
-const RTD_SEARCH_PARAMETER  = "rtd_search";
+const FETCH_RESULTS_DELAY = 100;
+const CLEAR_RESULTS_DELAY = 150;
+let current_request = null;
+
+// var READTHEDOCS_DATA = {
+//     'project': 'python-telegram-bot',
+//     'version': 'latest',
+//     'language': 'en',
+//     'proxied_api_host': 'https://readthedocs.org',
+//     };
+// window.READTHEDOCS_DATA = READTHEDOCS_DATA
+
+if (window.hasOwnProperty("READTHEDOCS_DATA")) {
+    var project = READTHEDOCS_DATA.project;
+    var version = READTHEDOCS_DATA.version;
+    var api_host = READTHEDOCS_DATA.proxied_api_host || '/_';
+}
+
+/**
+ * Creates the initial html structure which will be
+ * appended to the <body> as soon as the page loads.
+ * This html structure will serve as the boilerplate
+ * to show our search results.
+ *
+ * @return {String} initial html structure
+ */
+const generateAndReturnInitialHtml = () => {
+    // MODDED: Added the dropdown checkbox related html code below
+    let innerHTML =
+        '<div class="search__outer"> \
+            <div class="search__outer__input__wrapper"> \
+                <input class="search__outer__input" spellcheck="false" placeholder="Search"> \
+                <span class="bar"></span> \
+                <div class="dropdown" tabindex="0"> \
+                    <button class="dropbtn">Type\
+                        <i class="arrow down"></i>\
+                    </button> \
+                    <ul class="dropdown-content"> \
+                        <li><a href="#"><input type="checkbox" id="drp-classes" checked/><label for="drp-classes">&nbsp;&nbsp;Classes</label></a></li> \
+                        <li><a href="#"><input type="checkbox" id="drp-methods" checked/><label for="drp-methods">&nbsp;&nbsp;Methods</label></a></li> \
+                        <li><a href="#"><input type="checkbox" id="drp-attrs" checked/><label for="drp-attrs">&nbsp;&nbsp;Attributes</label></a></li> \
+                        <li><a href="#"><input type="checkbox" id="drp-params" checked/><label for="drp-params">&nbsp;&nbsp;Parameters</label></a></li> \
+                        <li><a href="#"><input type="checkbox" id="drp-docs" checked/><label for="drp-docs">&nbsp;&nbsp;Docstring</label></a></li> \
+                    </ul> \
+                </div> \
+                <div class="search__cross" title="Close"> \
+                    <!--?xml version="1.0" encoding="UTF-8"?--> \
+                    <svg class="search__cross__img" width="15px" height="15px" enable-background="new 0 0 96 96" version="1.1" viewBox="0 0 96 96" xml:space="preserve" xmlns="http://www.w3.org/2000/svg"> \
+                        <polygon fill="#AAAAAB" points="96,14 82,0 48,34 14,0 0,14 34,48 0,82 14,96 48,62 82,96 96,82 62,48 "></polygon> \
+                    </svg> \
+            </div> \
+            </div> \
+        </div> \
+        <div class="rtd__search__credits"> \
+            Search by <a href="https://readthedocs.org/">Read the Docs</a> & <a href="https://github.com/harshil21/furo-sphinx-search">furo-sphinx-search</a> \
+        </div>';
+
+    let div = createDomNode("div", {
+        class: "search__outer__wrapper search__backdrop",
+    });
+    div.innerHTML = innerHTML;
+    return div;
+};
 
 /**
  * Debounce the function.
@@ -85,23 +145,6 @@ const buildSection = function (id, title, link, contents) {
 };
 
 
-/**
- * Adds/removes "rtd_search" url parameter to the url.
- */
-const updateUrl = () => {
-    let parsed_url = new URL(window.location.href);
-    let search_query = getSearchTerm();
-    // search_query should not be an empty string.
-    if (search_query.length > 0) {
-        parsed_url.searchParams.set(RTD_SEARCH_PARAMETER, search_query);
-    } else {
-        parsed_url.searchParams.delete(RTD_SEARCH_PARAMETER);
-    }
-    // Update url.
-    window.history.pushState({}, null, parsed_url.toString());
-};
-
-
 /*
  * Keeps in sync the original search bar with the input from the modal.
  */
@@ -142,21 +185,6 @@ const createDomNode = (nodeName, attributes) => {
 };
 
 /**
- * Checks if data type is "string" or not
- *
- * @param {*} data data whose data-type is to be checked
- * @return {Boolean} 'true' if type is "string" and length is > 0
- */
-const _is_string = str => {
-    if (typeof str === "string" && str.length > 0) {
-        return true;
-    } else {
-        return false;
-    }
-};
-
-
-/**
  * Generate and return html structure
  * for a page section result.
  *
@@ -172,7 +200,7 @@ const get_section_html = (sectionData, page_link, id) => {
     }
 
     let section_content = [
-        sectionData.content.substring(0, MAX_SUBSTRING_LIMIT) + " ..."
+        sectionData.content.substring(0, MAX_SUBSTRING_LIMIT)
     ];
 
     if (highlights.content.length) {
@@ -183,7 +211,7 @@ const get_section_html = (sectionData, page_link, id) => {
             j < highlight_content.length && j < MAX_SECTION_RESULTS;
             ++j
         ) {
-            section_content.push("... " + highlight_content[j] + " ...");
+            section_content.push(highlight_content[j]);
         }
     }
 
@@ -205,7 +233,7 @@ const get_domain_html = (domainData, page_link, id) => {
     let domain_role_name = domainData.role;
     let domain_name = domainData.name;
     let domain_content =
-        domainData.content.substr(0, MAX_SUBSTRING_LIMIT) + " ...";
+        domainData.content.substr(0, MAX_SUBSTRING_LIMIT);
 
     let highlights = domainData.highlights;
     if (highlights.name.length) {
@@ -218,7 +246,7 @@ const get_domain_html = (domainData, page_link, id) => {
     let domain_id = "hit__" + id;
 
     let div_role_name = createDomNode("div", {class: "search__domain_role_name"});
-    div_role_name.innerText = `[${domain_role_name}]`;
+    div_role_name.innerText = domain_role_name;
     domain_name += div_role_name.outerHTML;
 
     return buildSection(
@@ -551,7 +579,6 @@ const fetchAndGenerateResults = (api_endpoint, parameters, projectName) => {
 
     let fetchFunc = () => {
         // Update URL just before fetching the results
-        updateUrl();
         updateSearchBar();
 
         const url = api_endpoint + "?" + new URLSearchParams(parameters).toString();
@@ -599,66 +626,16 @@ const fetchAndGenerateResults = (api_endpoint, parameters, projectName) => {
     return debounce(fetchFunc, FETCH_RESULTS_DELAY);
 };
 
-/**
- * Creates the initial html structure which will be
- * appended to the <body> as soon as the page loads.
- * This html structure will serve as the boilerplate
- * to show our search results.
- *
- * @return {String} initial html structure
- */
-const generateAndReturnInitialHtml = () => {
-    // MODDED: Added the dropdown checkbox related html code below
-    let innerHTML =
-        '<div class="search__outer"> \
-            <div class="search__outer__input__wrapper"> \
-                <input class="search__outer__input" spellcheck="false" placeholder="Search"> \
-                <span class="bar"></span> \
-                <div class="dropdown" tabindex="0"> \
-                    <button class="dropbtn">Type\
-                        <i class="arrow down"></i>\
-                    </button> \
-                    <ul class="dropdown-content"> \
-                        <li><a href="#"><input type="checkbox" id="drp-classes" checked/><label for="drp-classes">&nbsp;&nbsp;Classes</label></a></li> \
-                        <li><a href="#"><input type="checkbox" id="drp-methods" checked/><label for="drp-methods">&nbsp;&nbsp;Methods</label></a></li> \
-                        <li><a href="#"><input type="checkbox" id="drp-attrs" checked/><label for="drp-attrs">&nbsp;&nbsp;Attributes</label></a></li> \
-                        <li><a href="#"><input type="checkbox" id="drp-params" checked/><label for="drp-params">&nbsp;&nbsp;Parameters</label></a></li> \
-                        <li><a href="#"><input type="checkbox" id="drp-docs" checked/><label for="drp-docs">&nbsp;&nbsp;Docstring</label></a></li> \
-                    </ul> \
-                </div> \
-                <div class="search__cross" title="Close"> \
-                    <!--?xml version="1.0" encoding="UTF-8"?--> \
-                    <svg class="search__cross__img" width="15px" height="15px" enable-background="new 0 0 96 96" version="1.1" viewBox="0 0 96 96" xml:space="preserve" xmlns="http://www.w3.org/2000/svg"> \
-                        <polygon fill="#AAAAAB" points="96,14 82,0 48,34 14,0 0,14 34,48 0,82 14,96 48,62 82,96 96,82 62,48 "></polygon> \
-                    </svg> \
-            </div> \
-            </div> \
-        </div> \
-        <div class="rtd__search__credits"> \
-            Search by <a href="https://readthedocs.org/">Read the Docs</a> & <a href="https://github.com/harshil21/furo-sphinx-search">furo-sphinx-search</a> \
-        </div>';
 
-    let div = createDomNode("div", {
-        class: "search__outer__wrapper search__backdrop",
-    });
-    div.innerHTML = innerHTML;
-    return div;
-};
 
 /**
  * Opens the search modal.
  *
- * @param {String} custom_query if a custom query is provided,
- * initialize the value of input field with it, or fallback to the
- * value from the original search bar.
  */
-const showSearchModal = custom_query => {
-    // removes previous results (if there are any).
-    removeResults();
-
-    $(".search__outer__wrapper").fadeIn(ANIMATION_TIME, () => {
-        // removes the focus from the initial input field
-        // which as already present in the docs.
+const showSearchModal = () => {
+    // removes the focus from the initial input field
+    // which as already present in the docs.
+    const search_bar_init = () => {
         let search_bar = getInputField();
         search_bar.blur();
 
@@ -667,57 +644,66 @@ const showSearchModal = custom_query => {
             ".search__outer__input"
         );
         if (search_outer_input !== null) {
-            if (
-                typeof custom_query !== "undefined" &&
-                _is_string(custom_query)
-            ) {
-                search_outer_input.value = custom_query;
-                search_bar.value = custom_query;
-            } else {
-                search_outer_input.value = search_bar.value;
-            }
+            search_outer_input.value = search_bar.value;
             search_outer_input.focus();
         }
-    });
+    }
+
+    $(".search__outer__wrapper").fadeIn(ANIMATION_TIME, search_bar_init);
 };
 
 /**
  * Closes the search modal.
  */
 const removeSearchModal = () => {
-    // removes previous results before closing
-    removeResults();
-
+    // remove the focus from search input field
     updateSearchBar();
-
-    // sets the value of input field to empty string and remove the focus.
     let search_outer_input = document.querySelector(".search__outer__input");
     if (search_outer_input !== null) {
-        search_outer_input.value = "";
         search_outer_input.blur();
     }
-
-    // update url (remove 'rtd_search' param)
-    updateUrl();
 
     $(".search__outer__wrapper").fadeOut(ANIMATION_TIME);
 };
 
+
+const generateResults = () => {
+    let search_query = getSearchTerm();
+    updateSearchBar();
+    if (search_query.length > 0) {
+        if (current_request !== null) {
+            // cancel previous ajax request.
+            current_request.cancel();
+        }
+        const search_endpoint = api_host + "/api/v2/search/";
+        const search_params = {
+            q: search_query,
+            project: project,
+            version: version,
+        };
+        current_request = fetchAndGenerateResults(search_endpoint, search_params, project);
+        current_request();
+    } else {
+        // if the last request returns the results,
+        // the suggestions list is generated even if there
+        // is no query. To prevent that, this function
+        // is debounced here.
+        let func = () => {
+            removeResults();
+        };
+        if (current_request !== null) {
+            // cancel previous ajax request.
+            current_request.cancel();
+        }
+        debounce(func, CLEAR_RESULTS_DELAY)();
+    }
+};
+
+
 window.addEventListener("DOMContentLoaded", () => {
     // only add event listeners if READTHEDOCS_DATA global
     // variable is found.
-    // var READTHEDOCS_DATA = {
-    //     'project': 'python-telegram-bot',
-    //     'version': 'latest',
-    //     'language': 'en',
-    //     'proxied_api_host': 'https://readthedocs.org',
-    //     };
-    // window.READTHEDOCS_DATA = READTHEDOCS_DATA
     if (window.hasOwnProperty("READTHEDOCS_DATA")) {
-        const project = READTHEDOCS_DATA.project;
-        const version = READTHEDOCS_DATA.version;
-        const api_host = READTHEDOCS_DATA.proxied_api_host || '/_';
-
         let initialHtml = generateAndReturnInitialHtml();
         document.body.appendChild(initialHtml);
 
@@ -729,44 +715,13 @@ window.addEventListener("DOMContentLoaded", () => {
         );
         let cross_icon = document.querySelector(".search__cross");
 
-        // this stores the current request.
-        let current_request = null;
-
-        let search_bar = getInputField();
+        let search_bar = getInputField();  // open search modal on click of original search box
         search_bar.addEventListener("focus", e => {
             showSearchModal();
         });
 
-        const generateResults = () => {
-            let search_query = getSearchTerm();
-            if (search_query.length > 0) {
-                if (current_request !== null) {
-                    // cancel previous ajax request.
-                    current_request.cancel();
-                }
-                const search_endpoint = api_host + "/api/v2/search/";
-                const search_params = {
-                    q: search_query,
-                    project: project,
-                    version: version,
-                };
-                current_request = fetchAndGenerateResults(search_endpoint, search_params, project);
-                current_request();
-            } else {
-                // if the last request returns the results,
-                // the suggestions list is generated even if there
-                // is no query. To prevent that, this function
-                // is debounced here.
-                let func = () => {
-                  removeResults();
-                  updateUrl();
-                };
-                debounce(func, CLEAR_RESULTS_DELAY)();
-                updateUrl();
-            }
-        };
 
-        search_outer_input.addEventListener("input", e => {
+        search_outer_input.addEventListener("input", e => {  // Generate results when typing
             generateResults();
         });
 
@@ -849,23 +804,10 @@ window.addEventListener("DOMContentLoaded", () => {
             }
         });
 
-        document.addEventListener("change", e => {  // Update search results when boxes are toggled
+        let dropdown_content = document.querySelector(".dropdown-content");
+        dropdown_content.addEventListener("change", e => {  // Update search results when boxes are toggled
             generateResults();
         });
-
-        // if "rtd_search" is present in URL parameters,
-        // then open the search modal and show the results
-        // for the value of "rtd_search"
-        const url_params = new URLSearchParams(document.location.search);
-        const query = url_params.get(RTD_SEARCH_PARAMETER);
-        if (query !== null) {
-            showSearchModal(query);
-            search_outer_input.value = query;
-
-            let event = document.createEvent("Event");
-            event.initEvent("input", true, true);
-            search_outer_input.dispatchEvent(event);
-        }
 
     } else {
         console.log(
