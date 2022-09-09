@@ -23,7 +23,7 @@
     display: none;
 
     /* Other */
-    background-color: rgba(0 0 0 69%);
+    background-color: rgba(0, 0, 0, 0.69);
 }
 
 .search__outer {
@@ -300,7 +300,7 @@
 
 .rtd__search__credits {
     background-image: initial;
-    background-color: rgb(30 30 30);
+    background-color: rgb(25 25 25);
     border-bottom-left-radius: 10px;
     border-bottom-right-radius: 10px;
     margin: auto;
