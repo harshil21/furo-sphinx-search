@@ -519,13 +519,6 @@ const getInputField = () => {
 const getSearchTerm = () => {
   let text = document.querySelector(".search__outer__input");
   if (text !== null) {
-    if (text.value.startsWith("tg.")) {
-        return "telegram." + text.value.substr(3) || "";
-        }
-    if (/^[A-Z]/.test(text.value)) {  /* if first letter is capital, assume user is searching for a class */
-        return "telegram." + text.value || "";  /* it could also be from ext, but this works well enough */
-        }
-
     return text.value || "";
     }
   return "";
