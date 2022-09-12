@@ -638,6 +638,12 @@ const showSearchModal = () => {
         );
         if (search_outer_input !== null) {
             search_outer_input.value = search_bar.value;
+            if (search_bar.value !== "") {  // if there is some text in the search bar, start searching
+                let result_box = document.querySelector(".search__result__box");
+                if (result_box === null) {  // if there is no result box already, then search
+                    generateResults();
+                }
+            }
             search_outer_input.focus();
         }
     }
