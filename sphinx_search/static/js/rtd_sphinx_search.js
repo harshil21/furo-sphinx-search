@@ -566,20 +566,26 @@ const fetchAndGenerateResults = (api_endpoint, parameters, projectName) => {
     // and show the "Searching ...." text to
     // the user.
     removeResults();
-    let search_loding = createDomNode("div", { class: "search__result__box" });
-    search_loding.innerHTML = "<strong>Searching...</strong>";
-    search_outer.appendChild(search_loding);
+    let search_loading = createDomNode("div", { class: "search__result__box" });
+    search_loading.innerHTML = "<strong>Searching...</strong>";
+    search_outer.appendChild(search_loading);
 
     let fetchFunc = () => {
         // Update URL just before fetching the results
         updateSearchBar();
 
         const url = api_endpoint + "?" + new URLSearchParams(parameters).toString();
+        // const headers = new Headers();
+
+        // headers.append('Content-Type', 'application/json');
+        // headers.append('Accept', '*/*');
+        // headers.append('Origin', 'http://localhost:8000')
 
         fetch(url, {method: "GET"})
         .then(response => {
             if (!response.ok) {
-              throw new Error();
+                console.log(response);
+                throw new Error();
             }
             return response.json();
         })
@@ -677,12 +683,9 @@ const generateResults = () => {
             // cancel previous ajax request.
             current_request.cancel();
         }
-        const search_endpoint = api_host + "/api/v2/search/";
-        const search_params = {
-            q: search_query,
-            project: project,
-            version: version,
-        };
+        const search_endpoint = api_host + "/api/v3/search/";
+        const query = "project:" + project + "/" + version + " " + search_query;
+        const search_params = {q: query};
         current_request = fetchAndGenerateResults(search_endpoint, search_params, project);
         current_request();
     } else {
