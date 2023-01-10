@@ -8,7 +8,7 @@ let current_request = null;
 
 // var READTHEDOCS_DATA = {
 //     'project': 'python-telegram-bot',
-//     'version': 'latest',
+//     'version': 'doc-fixes',
 //     'language': 'en',
 //     'proxied_api_host': 'https://readthedocs.org',
 //     };
@@ -325,7 +325,7 @@ const generateSingleResult = (resultData, projectName, id, checked) => {
 
     // If the result is not from the same project,
     // then it's from a subproject.
-    if (projectName !== resultData.project) {
+    if (projectName !== resultData.project.slug) {
         let subtitle = createDomNode("small", {class: "rtd_ui_search_subtitle"});
         subtitle.innerText = `(from project ${resultData.project})`;
         h2_element.appendChild(subtitle);
@@ -575,12 +575,7 @@ const fetchAndGenerateResults = (api_endpoint, parameters, projectName) => {
         updateSearchBar();
 
         const url = api_endpoint + "?" + new URLSearchParams(parameters).toString();
-        // const headers = new Headers();
-
-        // headers.append('Content-Type', 'application/json');
-        // headers.append('Accept', '*/*');
-        // headers.append('Origin', 'http://localhost:8000')
-
+        // If you're locally testing api v3, make sure to disable CORS via a Chrome extension.
         fetch(url, {method: "GET"})
         .then(response => {
             if (!response.ok) {
