@@ -648,7 +648,9 @@ const showSearchModal = () => {
         }
     }
 
-    $(".search__outer__wrapper").fadeIn(ANIMATION_TIME, search_bar_init);
+    const element = document.querySelector(".search__outer__wrapper.search__backdrop")
+    fadeIn(element, ANIMATION_TIME);
+    search_bar_init();
 };
 
 /**
@@ -662,7 +664,8 @@ const removeSearchModal = () => {
         search_outer_input.blur();
     }
 
-    $(".search__outer__wrapper").fadeOut(ANIMATION_TIME);
+    const element = document.querySelector(".search__outer__wrapper.search__backdrop")
+    fadeOut(element, ANIMATION_TIME);
 };
 
 
@@ -697,6 +700,44 @@ const generateResults = () => {
         debounce(func, CLEAR_RESULTS_DELAY)();
     }
 };
+
+
+function fadeIn(el, time) {
+  // From http://jsfiddle.net/TH2dn/606/
+    el.style.opacity = 0;
+    el.style.display = "block";
+
+    var last = +new Date();
+    var tick = function() {
+        el.style.opacity = +el.style.opacity + (new Date() - last) / time;
+        last = +new Date();
+
+        if (+el.style.opacity < 1) {
+        (window.requestAnimationFrame && requestAnimationFrame(tick)) || setTimeout(tick, 16);
+        }
+    };
+
+    tick();
+}
+
+
+function fadeOut(el, time) {
+    el.style.opacity = 1;
+
+    var last = +new Date();
+    var tick = function() {
+        el.style.opacity = +el.style.opacity - (new Date() - last) / time;
+        last = +new Date();
+
+        if (+el.style.opacity > 0) {
+        (window.requestAnimationFrame && requestAnimationFrame(tick)) || setTimeout(tick, 16);
+        } else {
+            el.style.display = "none";
+        }
+    };
+
+    tick();
+}
 
 
 window.addEventListener("DOMContentLoaded", () => {
