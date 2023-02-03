@@ -629,7 +629,7 @@ const fetchAndGenerateResults = (api_endpoint, parameters, projectName) => {
 const showSearchModal = () => {
     // removes the focus from the initial input field
     // which as already present in the docs.
-    const search_bar_init = () => {
+    const show_modal = function () {
         let search_bar = getInputField();
         search_bar.blur();
 
@@ -647,11 +647,17 @@ const showSearchModal = () => {
             }
             search_outer_input.focus();
         }
-    }
+    };
 
-    const element = document.querySelector(".search__outer__wrapper.search__backdrop")
-    fadeIn(element, ANIMATION_TIME);
-    search_bar_init();
+    if (window.jQuery) {
+      $(".search__outer__wrapper").fadeIn(ANIMATION_TIME, show_modal);
+    } else {
+      let element = document.querySelector(".search__outer__wrapper");
+      if (element && element.style) {
+        element.style.display = "block";
+      }
+      show_modal();
+    }
 };
 
 /**
@@ -665,8 +671,14 @@ const removeSearchModal = () => {
         search_outer_input.blur();
     }
 
-    const element = document.querySelector(".search__outer__wrapper.search__backdrop")
-    fadeOut(element, ANIMATION_TIME);
+    if (window.jQuery) {
+      $(".search__outer__wrapper").fadeOut(ANIMATION_TIME);
+    } else {
+      let element = document.querySelector(".search__outer__wrapper");
+      if (element && element.style) {
+        element.style.display = "none";
+      }
+    }
 };
 
 
@@ -698,45 +710,6 @@ const generateResults = () => {
         debounce(func, CLEAR_RESULTS_DELAY)();
     }
 };
-
-
-function fadeIn(el, time) {
-  // From http://jsfiddle.net/TH2dn/606/
-    el.style.opacity = 0;
-    el.style.display = "block";
-
-    var last = +new Date();
-    var tick = function() {
-        el.style.opacity = +el.style.opacity + (new Date() - last) / time;
-        last = +new Date();
-
-        if (+el.style.opacity < 1) {
-        (window.requestAnimationFrame && requestAnimationFrame(tick)) || setTimeout(tick, 16);
-        }
-    };
-
-    tick();
-}
-
-
-function fadeOut(el, time) {
-    el.style.opacity = 1;
-
-    var last = +new Date();
-    var tick = function() {
-        el.style.opacity = +el.style.opacity - (new Date() - last) / time;
-        last = +new Date();
-
-        if (+el.style.opacity > 0) {
-        (window.requestAnimationFrame && requestAnimationFrame(tick)) || setTimeout(tick, 16);
-        } else {
-            el.style.display = "none";
-        }
-    };
-
-    tick();
-}
-
 
 window.addEventListener("DOMContentLoaded", () => {
     // only add event listeners if READTHEDOCS_DATA global
