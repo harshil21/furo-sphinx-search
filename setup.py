@@ -11,7 +11,7 @@ setuptools.setup(
     name='furo-sphinx-search',
     version=sphinx_search.__version__,
     author='Harshil Mehta',
-    author_email='ilovebhagwan@gmail.com',
+    author_email='hoppingturtles@skiff.com',
     description='Sphinx extension to enable search as you type for docs hosted on Read the Docs '\
                 'with the furo theme.',
     url='https://github.com/harshil21/furo-sphinx-search',

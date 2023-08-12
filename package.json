@@ -1,6 +1,6 @@
 {
-  "name": "readthedocs-sphinx-search",
-  "version": "0.2.0",
+  "name": "furo-sphinx-search",
+  "version": "0.2.0.1",
   "description": "Enable search-as-you-type feature.",
   "scripts": {
     "build": "gulp",
@@ -8,14 +8,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/readthedocs/readthedocs-sphinx-search.git"
+    "url": "git+https://github.com/harshil21/furo-sphinx-search.git"
   },
-  "author": "Vaibhav Gupta",
+  "author": "Harshil Mehta",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/readthedocs/readthedocs-sphinx-search/issues"
+    "url": "https://github.com/harshil21/furo-sphinx-search/issues"
   },
-  "homepage": "https://github.com/readthedocs/readthedocs-sphinx-search",
+  "homepage": "https://github.com/harshil21/furo-sphinx-search",
   "devDependencies": {
     "@babel/core": "^7.4.5",
     "@babel/preset-env": "^7.4.5",
