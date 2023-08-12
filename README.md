@@ -23,20 +23,25 @@ than the python one, feel free to open an issue or a PR.
 Installation
 ------------
 
-This package is not available via pip, so you'll have to install it manually:
+This package is not available via pip, so you'll have to install it manually via tags:
 
 ``` bash
-pip install git+https://github.com/harshil21/furo-sphinx-search@main
+pip install git+https://github.com/harshil21/furo-sphinx-search@v0.2.0.0
 ```
 
 or in your ``requirements.txt``:
 
 ``` code
-git+https://github.com/harshil21/furo-sphinx-search@main
+git+https://github.com/harshil21/furo-sphinx-search@v0.2.0.0
 ```
+
 
 The rest of the configuration process remains the same as the original package. Please refer to the
 [original documentation](https://readthedocs-sphinx-search.readthedocs.io/).
+
+#### Versioning
+
+This fork follows a modified version of semantic versioning as follows: `<upstream version>.<fork version>` e.g. `0.2.0.3`, this is done so that changes to this fork is easily recognizable while at the same time knowing which version this fork is based on.
 
 
 Credits
