@@ -26,13 +26,13 @@ Installation
 This package is not available via pip, so you'll have to install it manually via tags:
 
 ``` bash
-pip install git+https://github.com/harshil21/furo-sphinx-search@v0.2.0.0
+pip install git+https://github.com/harshil21/furo-sphinx-search@v0.2.0.1
 ```
 
 or in your ``requirements.txt``:
 
 ``` code
-git+https://github.com/harshil21/furo-sphinx-search@v0.2.0.0
+git+https://github.com/harshil21/furo-sphinx-search@v0.2.0.1
 ```
 
 
