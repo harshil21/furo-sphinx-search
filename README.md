@@ -3,13 +3,18 @@ furo-sphinx-search - Search as you type for Read the Docs
 
 ![image](https://user-images.githubusercontent.com/37377066/189539883-f3b24751-8447-42a5-9d30-757183101234.png)
 
+⚠️ ARCHIVED 
+==========
 
-This repository is a fork of [readthedocs-sphinx-search](https://github.com/readthedocs/readthedocs-sphinx-search), and is currently modded for use in [python-telegram-bot](https://github.com/python-telegram-bot/python-telegram-bot).
+This repository is now archived, see #2 for more details.
+
+
+This repository was orginally a fork of [readthedocs-sphinx-search](https://github.com/readthedocs/readthedocs-sphinx-search), and was modded for use in [python-telegram-bot](https://github.com/python-telegram-bot/python-telegram-bot).
 
 Modded features
 ---------------
 
-- Made the theme consistent with Furo. It works with both light and dark mode.
+- Made the theme consistent with [Furo](https://github.com/pradyunsg/furo). It works with both light and dark mode.
 - The theme is now more "material", with rounded corners and cards as results, along with tiny fixes.
 - Included the ability to perform an advanced search - Search by attributes, class, methods,
   parameters (requires [sphinx-paramlinks](https://github.com/sqlalchemyorg/sphinx-paramlinks), if
